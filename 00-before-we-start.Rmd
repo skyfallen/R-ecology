@@ -21,10 +21,18 @@ knitr::opts_chunk$set(results='hide', fig.path='img/r-lesson-')
     well formulated questions
 
 ------------
+# Presentation of RStudio
+
+Let's start by learning about our tool.
+
+* Console, Scripts, Environments, Plots
+* Code and workflow are more reproducible if we can document everything that we
+  do.
+* Our end goal is not just to "do stuff" but to do it in a way that anyone can
+  easily and exactly replicate our workflow and results.
 
 # Before we get started
 
-* Start RStudio (presentation of RStudio -below- should happen here)
 * Under the `File` menu, click on `New project`, choose `New directory`, then
   `Empty project`
 * Enter a name for this new folder, and choose a convenient location for
@@ -65,17 +73,6 @@ needs, but these should form the backbone of your working directory. For this
 workshop, you only need a `data/` folder.
 
 ![Example of a working directory structure](img/R-ecology-work_dir_structure.png)
-
-
-# Presentation of RStudio
-
-Let's start by learning about our tool.
-
-* Console, Scripts, Environments, Plots
-* Code and workflow are more reproducible if we can document everything that we
-  do.
-* Our end goal is not just to "do stuff" but to do it in a way that anyone can
-  easily and exactly replicate our workflow and results.
 
 # Interacting with R
 
@@ -121,7 +118,7 @@ you're in Rstudio and this happens, click inside the console window and press
 `Esc`; this will cancel the incomplete command and return you to the `>` prompt.
 
 # Basics of R
-
+#### By this time should be covered in intro presentation to the lesson
 R is a versatile, open source programming/scripting language that's useful both
 for statistics but also data science. Inspired by the programming language S.
 
@@ -228,8 +225,6 @@ rounding) first in your function call, and to specify the names of all optional
 arguments.  If you don't, someone reading your code might have to look up
 definition of a function with unfamiliar arguments to understand what you're
 doing.
-
-
 
 ## Seeking help
 

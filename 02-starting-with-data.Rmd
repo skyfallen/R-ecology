@@ -1,8 +1,9 @@
 ---
-layout: topic
-title: Starting with data
-author: Data Carpentry contributors
+title: "Starting with data"
+author: "DC contributors and Dmytro Fishman"
 minutes: 20
+output: pdf_document
+layout: topic
 ---
 
 ```{r, echo=FALSE, purl=FALSE, message = FALSE}
@@ -13,38 +14,35 @@ source("setup.R")
 
 > ## Learning Objectives
 >
-> * load external data (CSV files) in memory using the survey table
->  (`surveys.csv`) as an example
+> * load external data (CSV files) in memory using the temperature table
+>  (`temperature.csv`) as an example
 > * explore the structure and the content of a data frame in R
 > * understand what factors are and how to manipulate them
 
 ------------
 
-## Presentation of the Survey Data
+## Presentation of the Global Temperature Data
 
 ```{r, echo=FALSE, purl=TRUE}
-### Presentation of the survey data
+### Presentation of the temperature data
 ```
 
-We are studying the species and weight of animals caught in plots in our study
-area. The dataset is stored as a CSV file: each row holds information for a
-single animal, and the columns represent:
+We are studying the temperature. The dataset is stored as a CSV file: each row holds information for a
+single measurement starting from 18 centuary and until now, and the columns represent:
 
 | Column           | Description                        |
 |------------------|------------------------------------|
-| record\_id       | Unique id for the observation      |
-| month            | month of observation               |
-| day              | day of observation                 |
-| year             | year of observation                |
-| plot\_id         | ID of a particular plot            |
-| species\_id      | 2-letter code                      |
-| sex              | sex of animal ("M", "F")           |
-| hindfoot\_length | length of the hindfoot in mm       |
-| weight           | weight of the animal in grams      |
-| genus            | genus of animal                    |
-| species          | species of animal                  |
-| taxa             | e.g. Rodent, Reptile, Bird, Rabbit |
-| plot\_type       | type of plot                       |
+| record\_id       | Unique id for the measurement      |
+| month            | month of measurement               |
+| day              | day of measurement                 |
+| year             | year of measurement                |
+| AverageTemperatureFahr         | regional average land temperature             |
+| AverageTemperatureUncertaintyFahr      | the 95% confidence interval around the average                      |
+| City              | city where temperature was measured           |
+| country\_id | three first capitalised letters in the name of the country       |
+| Country           | country where temperature was measured      |
+| Latitude            | angular distance, of a point north or south from equator|
+| Longitude          | angular distance, of a point east or west from Greenwich|
 
 We are going to use the R function `download.file()` to download the CSV file
 that contains the survey data from figshare, and we will use `read.csv()` to
@@ -53,24 +51,24 @@ load into memory (as a `data.frame`) the content of the CSV file.
 To download the data into the `data/` subdirectory, do:
 
 ```{r, eval=FALSE, purl=TRUE}
-download.file("https://ndownloader.figshare.com/files/2292169",
-              "data/portal_data_joined.csv")
+download.file("https://s3-eu-west-1.amazonaws.com/pfigshare-u-files/4938964/temperature.csv",
+              "data/temperature.csv")
 ```
 
 You are now ready to load the data:
 
 ```{r, eval=TRUE,  purl=FALSE}
-surveys <- read.csv('data/portal_data_joined.csv')
+temperature <- read.csv('data/temperature.csv')
 ```
 
 This statement doesn't produce any output because, as you might recall,
 assignment doesn't display anything. If we want to check that our data has been
-loaded, we can print the variable's value: `surveys`. Alternatively, wrapping an
+loaded, we can print the variable's value: `temperature`. Alternatively, wrapping an
 assignment in parentheses will perform the assignment and display it at the same
 time.
 
 ```{r, eval = TRUE, purl = FALSE}
-(surveys <- read.csv('data/portal_data_joined.csv'))
+(temperature <- read.csv('data/temperature.csv'))
 ```
 
 Wow... that was a lot of output. At least it means the data loaded
@@ -78,7 +76,7 @@ properly. Let's check the top (the first 6 lines) of this `data.frame` using the
 function `head()`:
 
 ```{r, results='show', purl=FALSE}
-head(surveys)
+head(temperature)
 ```
 
 A `data.frame` is the representation of data in the format of a table where the
@@ -87,39 +85,29 @@ vector, they all contain the same type of data. We can see this when inspecting
 the __str__ucture of a `data.frame` with the function `str()`:
 
 ```{r, purl=FALSE}
-str(surveys)
+str(temperature)
 ```
 
 ### Challenge
 
-Based on the output of `str(surveys)`, can you answer the following questions?
+Based on the output of `str(temperature)`, can you answer the following questions?
 
-* What is the class of the object `surveys`?
+* What is the class of the object `temperature`?
 * How many rows and how many columns are in this object?
-* How many species have been recorded during these surveys?
-
-```{r, echo=FALSE, purl=TRUE}
-
-## Challenge
-## Based on the output of `str(surveys)`, can you answer the following questions?
-## * What is the class of the object `surveys`?
-## * How many rows and how many columns are in this object?
-## * How many species have been recorded during these surveys?
-
-```
+* How many countries have been recorded during these years?
 
 <!---
 ```{r, echo=FALSE, purl=FALSE}
 ## Answers
 ##
 ## * class: data frame
-## * how many rows: 34786,  how many columns: 13
-## * how many species: 48
+## * how many rows: 48470,  how many columns: 11
+## * how many countries: 8
 ```
 --->
 
 As you can see, many of the columns consist of integers, however, the columns
-`species` and `sex` are of a special class called a `factor`. Before we learn
+`City`, `Country` and `country_id` are of a special class called a `factor`. Before we learn
 more about the `data.frame` class, let's talk about factors. They are very
 useful but not necessarily intuitive, and therefore require some attention.
 

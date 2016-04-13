@@ -1,13 +1,14 @@
 ---
-layout: topic
-title: The `data.frame` class
-author: Data Carpentry contributors
+title: "The `data.frame` class"
+author: "Data Carpentry contributors"
 minutes: 30
+output: pdf_document
+layout: topic
 ---
 
 ```{r, echo=FALSE, purl=FALSE, message = FALSE}
 source("setup.R")
-surveys <- read.csv("data/portal_data_joined.csv")
+temperature <- read.csv("data/temperature.csv")
 ```
 
 ```{r, echo=FALSE, purl=TRUE}
@@ -212,32 +213,32 @@ seq(50, by=5, length.out=10)
 seq(1, 8, by=3) # sequence stops to stay below upper limit
 ```
 
-Our survey data frame has rows and columns (it has 2 dimensions), if we want to
+Our temperature data frame has rows and columns (it has 2 dimensions), if we want to
 extract some specific data from it, we need to specify the "coordinates" we want
 from it. Row numbers come first, followed by column numbers.
 
 ```{r, purl=FALSE}
-surveys[1]      # first column in the data frame
-surveys[1, 1]   # first element in the first column of the data frame
-surveys[1, 6]   # first element in the 6th column
-surveys[1:3, 7] # first three elements in the 7th column
-surveys[3, ]    # the 3rd element for all columns
-surveys[, 8]    # the entire 8th column
-head_surveys <- surveys[1:6, ] # surveys[1:6, ] is equivalent to head(surveys)
+temperature[1]      # first column in the data frame
+temperature[1, 1]   # first element in the first column of the data frame
+temperature[1, 6]   # first element in the 6th column
+temperature[1:3, 7] # first three elements in the 7th column
+temperature[3, ]    # the 3rd element for all columns
+temperature[, 8]    # the entire 8th column
+head_temperature <- temperature[1:6, ] # temperature[1:6, ] is equivalent to head(temperature)
 ```
 
 As well as using numeric values to subset a `data.frame` (or `matrix`), columns
 can be called by name, using one the three following notations:
 
 ```{r, eval = FALSE, purl=FALSE}
-surveys[, "species_id"]
-surveys[["species_id"]]
-surveys$species_id
+temperature[, "City"]
+temperature[["City"]]
+temperature$City
 ```
 
 For our purposes, these three notations are equivalent. However, the last one
 with the `$` does partial matching on the name. So you could also select the
-column `"day"` by typing `surveys$d`. It's a shortcut, as with all shortcuts,
+column `"month"` by typing `temperature$m`. It's a shortcut, as with all shortcuts,
 they can have dangerous consequences, and are best avoided. Besides, with
 auto-completion in RStudio, you rarely have to type more than a few characters
 to get the full and correct column name.
@@ -252,14 +253,14 @@ to get the full and correct column name.
 ```{r, echo=FALSE, purl=TRUE}
 ### The function `nrow()` on a `data.frame` returns the number of
 ### rows. Use it, in conjuction with `seq()` to create a new
-### `data.frame` called `surveys_by_10` that includes every 10th row
-### of the survey data frame starting at row 10 (10, 20, 30, ...)
+### `data.frame` called `temperature_by_10` that includes every 10th row
+### of the temperature data frame starting at row 10 (10, 20, 30, ...)
 ```
 
 <!---
 ```{r, purl=FALSE}
 ## Answer
-surveys_by_10 <- surveys[seq(10, nrow(surveys), by=10), ]
+temperature_by_10 <- temperature[seq(10, nrow(temperature), by=10), ]
 ```
 --->
 

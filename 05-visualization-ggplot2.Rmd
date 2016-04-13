@@ -1,8 +1,9 @@
 ---
-layout: topic
-title: Data visualization with ggplot2
-subtitle: Visualizing data in R with the ggplot2 package
+title: "Data visualization with ggplot2"
 minutes: 60
+output: pdf_document
+subtitle: Visualizing data in R with the ggplot2 package
+layout: topic
 ---
 
 ```{r, echo=FALSE, purl=FALSE}
@@ -13,7 +14,7 @@ knitr::opts_chunk$set(fig.keep='last')
 source("setup.R")
 ```
 
-Authors: **Mateusz Kuzak**, **Diana Marek**, **Hedi Peterson**
+Authors: **Mateusz Kuzak**, **Diana Marek**, **Hedi Peterson**, **Dmytro Fishman**
 
 
 
@@ -24,11 +25,12 @@ capabilities in basic R, but ggplot2 adds more powerful plotting capabilities.
 
 > ### Learning Objectives
 >
-> -	Visualize some of the [mammals data](https://dx.doi.org/10.6084/m9.figshare.1314459.v5)
-> from Figshare [surveys.csv](https://ndownloader.figshare.com/files/2292172)
+> -	Visualize some of the [global temperature data](https://www.kaggle.com/berkeleyearth/climate-change-earth-surface-temperature-data)
+> from Figshare [temperature.csv]('https://s3-eu-west-1.amazonaws.com/pfigshare-u-files/4938964/temperature.csv')
 > -	Understand how to plot these data using R ggplot2 package. For more details
 > on using ggplot2 see [official documentation](http://docs.ggplot2.org/current/).
-> -	Building step by step complex plots with the ggplot2 package
+> -	Building step by step complex plots with the ggplot2 package, see
+> [handy cheatsheet](https://www.rstudio.com/wp-content/uploads/2015/08/ggplot2-cheatsheet.pdf)
 
 Load required packages
 
@@ -41,68 +43,78 @@ library(magrittr)
 library(dplyr)
 ```
 
-Load data directly from figshare.
-
 ```{r}
-surveys_raw <- read.csv("https://ndownloader.figshare.com/files/2292172")
+temperature_raw <- read.csv('data/temperature.csv')
 ```
-
-`surveys.csv` data contains some measurements of the animals caught in plots.
 
 ## Data cleaning and preparing for plotting
 
 Let's look at the summary
 
 ```{r}
-summary(surveys_raw)
+summary(temperature_raw)
 ```
 
 There are few things we need to clean in the dataset.
 
-There are missing values for species_id in some records. Let's remove those.
+There are missing values for City and Country in some records. Let's remove those.
 
 ```{r}
-surveys_complete <- surveys_raw %>%
-                    filter(species_id != "")
+temperature_complete <- temperature_raw %>%
+                    filter(!is.na(City)) %>%
+                    filter(!is.na(Country))
 ```
 
-We saw in summary, there were NA's in weight and hindfoot_length. Let's remove
-rows with missing values in weight and hindfoot_length. In fact, let's combine
-this with removing empty species_id, so we have one command and don't make lots
+We saw in summary, there were NA's in AverageTemperatureFahr and 
+AverageTemperatureUncertaintyFahr Let's remove rows with missing values 
+in those fields. In fact, let's combine this with 
+removing empty City and Country, so we have one command and don't make lots
 of intermediate variable names. This is where piping becomes really handy!
 
 ```{r}
-surveys_complete <- surveys_raw %>%
-                    filter(species_id != "") %>%        # remove missing species_id
-                    filter(!is.na(weight)) %>%          # remove missing weight
-                    filter(!is.na(hindfoot_length))     # remove missing hindfoot_length
+temperature_complete <- temperature_raw %>%
+                    filter(!is.na(City)) %>%
+                    filter(!is.na(Country)) %>%        
+                    filter(!is.na(AverageTemperatureFahr)) %>%        
+                    filter(!is.na(AverageTemperatureUncertaintyFahr))  
 ```
 
-There are a lot of species with low counts, let's remove the species with less
-than 10 counts.
+`day` field has no other values besides `1`, let's remove it from our data.
 
 ```{r}
-# count records per species
-species_counts <- surveys_complete %>%
-                  group_by(species_id) %>%
-                  tally
-
-head(species_counts)
-
-# get names of those frequent species
-frequent_species <- species_counts %>%
-                    filter(n >= 10) %>%
-                    select(species_id)
-
-surveys_complete <- surveys_complete %>%
-           filter(species_id %in% frequent_species$species_id)
+# get rid of `day` column
+temperature_complete <- select(temperature_complete, -(day)) 
+head(temperature_complete)
 ```
 
-Make simple scatter plot of `hindfoot_length` (in millimeters) as a function of
-`weight` (in grams), using basic R plotting capabilities.
+We already saw how changing Fahrenheit to Celsius helps to understand 
+the data better, let's convert AverageTemperatureFahr and 
+AverageTemperatureUncertaintyFahr into Celsius.
+
+```{r}
+# Use mutate to convert Fahrenheit to Celsius and store values in 
+# separate columns
+temperature_complete <- temperature_complete %>%
+  mutate(AverageTemperatureCelsius = (AverageTemperatureFahr-32)*(5/9)) %>%
+  mutate(AverageTemperatureUncertaintyCelsius = (AverageTemperatureUncertaintyFahr-32)*(5/9))
+```
+
+Now we can actually get rid of unnecessary columns with Fahrenheit information by
+assigning `NULL` value to these columns.
+
+```{r}
+# Remove AverageTemperatureFahr and AverageTemperatureUncertaintyFahr
+# by assigning them with NULL
+temperature_complete$AverageTemperatureFahr <- NULL
+temperature_complete$AverageTemperatureUncertaintyFahr <- NULL
+head(temperature_complete)
+```
+
+Make simple scatter plot of `AverageTemperatureCelsius` as a function of
+`year`, using basic R plotting capabilities.
 
 ```{r base-plot}
-plot(x = surveys_complete$weight, y = surveys_complete$hindfoot_length)
+plot(x = temperature_complete$year, y = temperature_complete$AverageTemperatureCelsius)
 ```
 
 ## Plotting with ggplot2
@@ -120,21 +132,21 @@ To build a ggplot we need to:
 - bind the plot to a specific data frame using the `data` argument
 
 ```{r, eval=FALSE}
-ggplot(data = surveys_complete)
+ggplot(data = temperature_complete)
 ```
 
 - define aesthetics (`aes`), that maps variables in the data to axes on the plot
      or to plotting size, shape color, etc.,
 
 ```{r, eval=FALSE}
-ggplot(data = surveys_complete, aes(x = weight, y = hindfoot_length))
+ggplot(data = temperature_complete, aes(x = year, y = AverageTemperatureCelsius))
 ```
 
 - add `geoms` -- graphical representation of the data in the plot (points,
      lines, bars). To add a geom to the plot use `+` operator:
 
 ```{r first-ggplot}
-ggplot(data = surveys_complete, aes(x = weight, y = hindfoot_length)) +
+ggplot(data = temperature_complete, aes(x = year, y = AverageTemperatureCelsius)) +
   geom_point()
 ```
 
@@ -149,14 +161,14 @@ i.e. these are universal plot settings
 - adding transparency (alpha)
 
 ```{r adding-transparency}
-ggplot(data = surveys_complete, aes(x = weight, y = hindfoot_length)) +
+ggplot(data = temperature_complete, aes(x = year, y = AverageTemperatureCelsius)) +
   geom_point(alpha = 0.1)
 ```
 
 - adding colors
 
 ```{r adding-colors}
-ggplot(data = surveys_complete, aes(x = weight, y = hindfoot_length)) +
+ggplot(data = temperature_complete, aes(x = year, y = AverageTemperatureCelsius)) +
   geom_point(alpha = 0.1, color = "blue")
 ```
 
@@ -165,15 +177,15 @@ ggplot(data = surveys_complete, aes(x = weight, y = hindfoot_length)) +
 Visualising the distribution of weight within each species.
 
 ```{r boxplot}
-ggplot(data = surveys_complete, aes(x = species_id,  y = weight)) +
-                   geom_boxplot()
+ggplot(data = temperature_complete, aes(x = country_id,  y = AverageTemperatureCelsius)) +
+      geom_boxplot()
 ```
 
 By adding points to boxplot, we can see particular measurements and the
 abundance of measurements.
 
 ```{r boxplot-with-points}
-ggplot(data = surveys_complete, aes(x = species_id, y = weight)) +
+ggplot(data = temperature_complete, aes(x = country_id,  y = AverageTemperatureCelsius)) +
                    geom_jitter(alpha = 0.3, color = "tomato") +
                    geom_boxplot(alpha = 0)
 ```
@@ -181,6 +193,15 @@ ggplot(data = surveys_complete, aes(x = species_id, y = weight)) +
 Notice how the boxplot layer is on top of the jitter layer? Play around with
 the order of geoms and adjust transparency to see how to build up your plot in
 layers.
+
+<!---
+```{r, eval=FALSE, purl=FALSE}
+## For example
+ggplot(data = temperature_complete, aes(x = country_id,  y = AverageTemperatureCelsius)) +
+                   geom_boxplot(alpha = 0.9, size = 0.9)  +
+                   geom_jitter(alpha = 0.1, color = "tomato")
+```
+--->
 
 > ### Challenges
 
@@ -191,47 +212,76 @@ drawn.
 
 > - Replace the box plot with a violin plot; see `geom_violin()`
 
+<!---
+```{r, eval=FALSE, purl=FALSE}
+## Answer
+ggplot(data = temperature_complete, aes(x = country_id,  y = AverageTemperatureCelsius)) +
+                   geom_jitter(alpha = 0.3, color = "tomato") +
+                   geom_violin(alpha = 0)
+```
+--->
+
+> - Create boxplot for `AverageTemperatureUncertaintyCelsius`, which is a 95%
+> confidence interval from average temperature, it is always positive.
+
+<!---
+```{r, eval=FALSE, purl=FALSE}
+## Answer
+ggplot(data = temperature_complete, aes(x = country_id,  y = AverageTemperatureUncertaintyCelsius)) +
+                   geom_jitter(alpha = 0.3, color = "tomato") +
+                   geom_boxplot(alpha = 0)
+```
+--->
+
 In many types of data, it is important to consider the *scale* of the observations.  For example, it may be
 worth changing the scale of the axis to better distribute the observations in the space of the plot.
 Changing the scale of the axes is done similarly to adding/modifying other components
 (i.e., by incrementally adding commands).
 
-> - Represent weight on the log10 scale; see `scale_y_log10()`
+> - Represent AverageTemperatureUncertaintyCelsius on the log10 scale; see `scale_y_log10()`
 
-> - Create boxplot for `hindfoot_length`.
-
+<!---
+```{r, eval=FALSE, purl=FALSE}
+## Answer
+ggplot(data = temperature_complete, aes(x = country_id,  y = AverageTemperatureUncertaintyCelsius)) +
+                   geom_jitter(alpha = 0.3, color = "tomato") +
+                   geom_boxplot(alpha = 0) + 
+                   scale_y_log10()
+```
+--->
 
 ## Plotting time series data
 
-Let's calculate number of counts per year for each species. To do that we need
-to group data first and count records within each group.
+Let's calculate average temperature per year per each country. 
+To do that we need to group data first by year and country 
+and summarise it by computing mean from every group.
 
 ```{r}
-yearly_counts <- surveys_complete %>%
-                 group_by(year, species_id) %>%
-                 tally
+yearly_country_temp <- temperature_complete %>%
+                        group_by(year, Country) %>%
+                        summarise(countryAverage = mean(AverageTemperatureCelsius))
 ```
 
-Timelapse data can be visualised as a line plot with years on x axis and counts
+Timelapse data can be visualised as a line plot with years on x axis and temperature
 on y axis.
 
 ```{r first-time-series}
-ggplot(data = yearly_counts, aes(x = year, y = n)) +
+ggplot(data = yearly_country_temp, aes(x = year, y = countryAverage)) +
                   geom_line()
 ```
 
-Unfortunately this does not work, because we plot data for all the species
-together. We need to tell ggplot to split graphed data by `species_id`
+Unfortunately this does not work, because we plot data for all the countries
+together. We need to tell ggplot to split graphed data by `Country`
 
-```{r time-series-by-species}
-ggplot(data = yearly_counts, aes(x = year, y = n, group = species_id)) +
+```{r time-series-by-countries}
+ggplot(data = yearly_country_temp, aes(x = year, y = countryAverage, group = Country)) +
   geom_line()
 ```
 
-We will be able to distinguish species in the plot if we add colors.
+We will be able to distinguish countries even better in the plot if we add colors.
 
 ```{r time-series-with-colors}
-ggplot(data = yearly_counts, aes(x = year, y = n, group = species_id, color = species_id)) +
+ggplot(data = yearly_country_temp, aes(x = year, y = countryAverage, group = Country, color = Country)) +
   geom_line()
 ```
 
@@ -242,88 +292,69 @@ into multiple plots based on some factor. We will use it to plot one time
 series for each species separately.
 
 ```{r first-facet}
-ggplot(data = yearly_counts, aes(x = year, y = n, color = species_id)) +
-  geom_line() + facet_wrap(~species_id)
+ggplot(data = yearly_country_temp, aes(x = year, y = countryAverage, color = Country)) +
+  geom_line() + 
+  facet_wrap(~Country)
 ```
 
-Now we would like to split line in each plot by sex of each individual
-measured. To do that we need to make counts in dataframe grouped by sex.
+Now we would like to split line in each plot by city of each country. 
+To do that we need to make measurements in dataframe grouped by country and city.
 
 > ### Challenges:
 >
-> - filter the dataframe so that we only keep records with sex "F" or "M"s
->
+> - group by year, Country, City
 
 ```{r}
-sex_values = c("F", "M")
-surveys_complete <- surveys_complete %>%
-           filter(sex %in% sex_values)
+yearly_country_city_temp <- temperature_complete %>%
+                        group_by(year, Country, City) %>%
+                        summarise(cityAverage = mean(AverageTemperatureCelsius))
 ```
 
-> - group by year, species_id, sex
+> - make the faceted plot splitting further by City (within single plot)
 
-```{r}
-yearly_sex_counts <- surveys_complete %>%
-                     group_by(year, species_id, sex) %>%
-                     tally
-```
-
-> - make the faceted plot splitting further by sex (within single plot)
-
-```{r facet-by-species-and-sex}
-ggplot(data = yearly_sex_counts, aes(x = year, y = n, color = species_id, group = sex)) +
-  geom_line() + facet_wrap(~ species_id)
+```{r facet-by-country-and-city}
+ggplot(data = yearly_country_city_temp, aes(x = year, y = cityAverage, color = Country, group = City)) +
+  geom_line() + 
+  facet_wrap(~ Country)
 ```
 
 Usually plots with white background looks more readable in the publications.
 We can set the background to white using the function `theme_bw()`.
 
-```{r facet-by-species-and-sex-white-bg}
-ggplot(data = yearly_sex_counts, aes(x = year, y = n, color = species_id, group = sex)) +
-  geom_line() + facet_wrap(~ species_id) + theme_bw()
+```{r facet-by-country-and-city-white-bg}
+ggplot(data = yearly_country_city_temp, aes(x = year, y = cityAverage, color = Country, group = City)) +
+  geom_line() + 
+  facet_wrap(~ Country) +
+  theme_bw()
 ```
 
-> We can improve the plot by coloring by sex instead of species (species are
+> We can improve the plot by coloring by city instead of country (countries are
 > already in separate plots, so we don't need to distinguish them better)
 
-```{r facet-by-species-and-sex-colored}
-ggplot(data = yearly_sex_counts, aes(x = year, y = n, color = sex, group = sex)) +
-  geom_line() + facet_wrap(~ species_id) + theme_bw()
-```
-
-> - plot average weight of each species over the course of the years
-
-```{r average-weight-timeseries}
-yearly_weight <- surveys_complete %>%
-                 group_by(year, species_id, sex) %>%
-                 summarise(avg_weight = mean(weight, na.rm = TRUE))
-ggplot(data = yearly_weight, aes(x=year, y=avg_weight, color = species_id, group = species_id)) +
-  geom_line() + theme_bw()
-```
-
-> - why do you think we see those steps in the plot?
-> - make separate plots per sex since weight of males and females can differ a lot
-
-```{r average-weight-time-facet_sex}
-ggplot(data = yearly_weight, aes(x=year, y=avg_weight, color = species_id, group = species_id)) +
-  geom_line() + facet_wrap(~ sex) + theme_bw()
+```{r facet-by-country-and-city-colored}
+ggplot(data = yearly_country_city_temp, aes(x = year, y = cityAverage, color = City, group = City)) +
+  geom_line() + 
+  facet_wrap(~ Country) +
+  theme_bw()
 ```
 
 So far our result looks quite good, but it is yet far from being publishable.
-What are other ways one can improve it? Take a look at the ggplot2 cheat sheet (https://www.rstudio.com/wp-content/uploads/2015/08/ggplot2-cheatsheet.pdf),
+What are other ways one can improve it? Take a look at the ggplot2 
+cheat sheet (https://www.rstudio.com/wp-content/uploads/2015/08/ggplot2-cheatsheet.pdf),
 and write down at least three more ideas (can leave them as comments
 to Etherpad).
 
 Now, let's change names of axes to something more informative than 'year'
-and 'n' and add title to this figure:
+and 'cityAverage' and add title to this figure:
 
 ```{r number_species_year_with_right_labels}
-ggplot(data = yearly_sex_counts, aes(x = year, y = n, color = sex, group = sex)) +
+ggplot(data = yearly_country_city_temp, aes(x = year, y = cityAverage, color = City, group = City)) +
   geom_line() +
-  facet_wrap(~ species_id) +
-  labs(title = 'Observed species in time',
+  facet_wrap(~ Country) +
+  labs(title = 'Average temperature',
        x = 'Year of observation',
-       y = 'Number of species') + theme_bw()
+       y = 'Average temperature') + 
+  theme_bw()
 ```
 
 Now, thanks to our efforts, axes have much more informative names,
@@ -331,13 +362,14 @@ yet quite small so it could be hard to read them.
 Let's change their size (and font just in sake of fun):
 
 ```{r number_species_year_with_right_labels_xfont_size}
-ggplot(data = yearly_sex_counts, aes(x = year, y = n, color = sex, group = sex)) +
+ggplot(data = yearly_country_city_temp, aes(x = year, y = cityAverage, color = City, group = City)) +
   geom_line() +
-  facet_wrap(~ species_id) +
-  labs(title = 'Observed species in time',
+  facet_wrap(~ Country) +
+  labs(title = 'Average temperature',
        x = 'Year of observation',
-       y = 'Number of species') +
-  theme(text=element_text(size=16, family="Arial")) + theme_bw()
+       y = 'Average temperature') + 
+  theme_bw(base_size = 16) +
+  theme(plot.title=element_text(family="Times", face="bold", size=20))
 ```
 
 After our manipulations we notice that the values on the x-axis are still not
@@ -347,16 +379,17 @@ angle, or experiment to find the appropriate angle for diagonally oriented
 labels.
 
 ```{r number_species_year_with_right_labels_xfont_orientation}
-ggplot(data = yearly_sex_counts, aes(x = year, y = n, color = sex, group = sex)) +
-    geom_line() +
-    facet_wrap(~ species_id) +
-    theme_bw() +
-    theme(axis.text.x = element_text(colour="grey20", size=12, angle=90, hjust=.5, vjust=.5),
-          axis.text.y = element_text(colour="grey20", size=12),
-          text=element_text(size=16, family="Arial")) +
-    labs(title = 'Observed species in time',
-         x = 'Year of observation',
-         y = 'Number of species')
+my_perfect_plot <- ggplot(data = yearly_country_city_temp, aes(x = year, y = cityAverage, color = City, group = City)) +
+                      geom_line() +
+                      facet_wrap(~ Country) +
+                      labs(title = 'Average temperature',
+                        x = 'Year of observation',
+                        y = 'Average temperature') + 
+                      theme_bw(base_size = 16) +
+                      theme(plot.title=element_text(family="Times", face="bold", size=20),
+                      axis.text.x = element_text(colour="grey20", size=12, angle=315, hjust=.5, vjust=.5),
+                      axis.text.y = element_text(colour="grey20", size=12))
+my_perfect_plot
 ```
 
 Now, labels became bigger and readable, but there are still few things
@@ -376,7 +409,7 @@ When you created your perfect plot. You can save it to the file in your favourit
 You can easily change the size by specifying the width and height of your plot.
 
 ```{r number_species_year_with_right_labels_xfont_save, eval=FALSE}
-ggsave("observed_species_in_time.png", width=15, height=10)
+ggsave(filename = "figures/observed_species_in_time.png", plot = my_perfect_plot, width=15, height=10)
 ```
 
 Enjoy plotting with ggplot2!

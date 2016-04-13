@@ -1,8 +1,9 @@
 ---
-layout: topic
-title: Introduction to R
-author: Data Carpentry contributors
+title: "Introduction to R"
+author: "Data Carpentry contributors"
 minutes: 45
+output: pdf_document
+layout: topic
 ---
 
 
