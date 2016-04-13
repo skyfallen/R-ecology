@@ -202,12 +202,6 @@ of first?
 
 
 ```{r wrong-order, results='show', purl=TRUE}
-## Challenge
-##
-## * In which order are the treatments listed?
-##
-## * How can you recreate this plot with "control" listed
-## last instead of first?
 exprmt <- factor(c("treat1", "treat2", "treat1", "treat3", "treat1", "control",
                    "treat1", "treat2", "treat3"))
 table(exprmt)
@@ -215,13 +209,12 @@ barplot(table(exprmt))
 ```
 
 
-<!---
+
 ```{r correct-order, purl=FALSE}
-## Answers
-##
-## * The treatments are listed in alphabetical order because they are factors.
-## * By redefining the order of the levels
-exprmt <- factor(exprmt, levels=c("treat1", "treat2", "treat3", "control"))
-barplot(table(exprmt))
+#Answers
+
+# * The treatments are listed in alphabetical order because they are factors.
+# * By redefining the order of the levels
+#exprmt <- factor(exprmt, levels=c("treat1", "treat2", "treat3", "control"))
+#barplot(table(exprmt))
 ```
---->

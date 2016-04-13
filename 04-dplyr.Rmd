@@ -116,15 +116,12 @@ Note that the final data frame is the leftmost part of this expression.
 >  Using pipes, subset the data to include measurements collected after 2011,
 >  and retain the columns `year`, `City`, and `Latitude`
 
-<!---
 ```{r, eval=FALSE, purl=FALSE}
 ## Answer
 temperature %>%
     filter(year > 2011) %>%
     select(year, City, Latitude)
 ```
---->
-
 
 ### Mutate
 
@@ -172,7 +169,6 @@ The `!` symbol negates it, so we're asking for everything that is not an `NA`.
 >
 >  **Hint**: think about how the commands should be ordered to produce this data frame!
 
-<!---
 ```{r, eval=FALSE, purl=FALSE}
 ## Answer
 temperature %>%
@@ -181,7 +177,6 @@ temperature %>%
     filter(AverageTemperatureCelsius_half < -7) %>%
     select(country_id, City, year, AverageTemperatureCelsius_half)
 ```
---->
 
 Let's finally update our `data.frame` with `AverageTemperatureCelsius` and 
 `AverageTemperatureUncertaintyCelsius`
@@ -245,52 +240,48 @@ temperature %>%
 >
 > How many times was each `City` was measured?
 
-<!---
-```{r, echo=FALSE, purl=FALSE}
+
+```{r, purl=FALSE}
 ## Answer
 temperature %>%
     group_by(City) %>%
     tally
 ```
---->
 
 > ### Challenge {.challenge}
 >
 > Use `group_by()` and `summarize()` to find the mean, min, and max AverageTemperatureUncertaintyCelsius
 > length for each City
 
-<!---
-```{r, echo=FALSE, purl=FALSE}
+```{r, purl=FALSE}
 ## Answer
-#temperature %>%
-#    filter(!is.na(AverageTemperatureUncertaintyCelsius)) %>%
-#    filter(!is.na(City)) %>%
-#    group_by(City) %>%
-#    summarize(
-#        mean_Uncertainty = mean(AverageTemperatureUncertaintyCelsius),
-#        min_Uncertainty = min(AverageTemperatureUncertaintyCelsius),
-#        max_Uncertainty = max(AverageTemperatureUncertaintyCelsius)
-#    )
+temperature %>%
+    filter(!is.na(AverageTemperatureUncertaintyCelsius)) %>%
+    filter(!is.na(City)) %>%
+    group_by(City) %>%
+    summarize(
+        mean_Uncertainty = mean(AverageTemperatureUncertaintyCelsius),
+        min_Uncertainty = min(AverageTemperatureUncertaintyCelsius),
+        max_Uncertainty = max(AverageTemperatureUncertaintyCelsius)
+    )
 ```
---->
 
 > ### Challenge {.challenge}
 >
 > What was the lowest temperature measured in each year? Return the columns `year`,
 > `Country`, `City`, and `AverageTemperatureCelsius`.
 
-<!---
+
+```{r, purl=FALSE}
 ## Answer
-```{r, echo=FALSE, purl=FALSE}
-#temperature %>%
-#    filter(!is.na(AverageTemperatureCelsius)) %>%
-#    filter(!is.na(Country)) %>%
-#    group_by(year) %>%
-#    filter(AverageTemperatureCelsius == max(AverageTemperatureCelsius)) %>%
-#    select(year, Country, City, month, AverageTemperatureCelsius) %>%
-#    arrange(year)
+temperature %>%
+    filter(!is.na(AverageTemperatureCelsius)) %>%
+    filter(!is.na(Country)) %>%
+    group_by(year) %>%
+    filter(AverageTemperatureCelsius == max(AverageTemperatureCelsius)) %>%
+    select(year, Country, City, month, AverageTemperatureCelsius) %>%
+    arrange(year)
 ```
---->
 
 [Handy dplyr cheatsheet](http://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf)
 

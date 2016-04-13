@@ -72,7 +72,7 @@ yearly_ukraine_temp <- temperature_ukraine %>%
                         summarise(countryAverage = mean(AverageTemperatureCelsius))
 ```
 
-```{r scatter plot}
+```{r yearly_ukraine_temp_scatter}
 ggplot(data = yearly_ukraine_temp, aes(x = year, y = countryAverage)) +
       geom_point()
 ```
@@ -90,7 +90,9 @@ temperature_ukraine <- temperature_ukraine %>%
 yearly_ukraine_temp <- temperature_ukraine %>%
                         group_by(year) %>%
                         summarise(countryAverage = mean(AverageTemperatureCelsius))
+```
 
+```{r yearly_ukraine_temp_scatter_from_1800}
 ggplot(data = yearly_ukraine_temp, aes(x = year, y = countryAverage)) +
       geom_point()
 ```
@@ -101,7 +103,9 @@ The interesting question here is how much each city influences this trend?
 yearly_ukraine_temp <- temperature_ukraine %>%
                         group_by(year, City) %>%
                         summarise(countryAverage = mean(AverageTemperatureCelsius))
+```
 
+```{r yearly_ukraine_temp_scatter_from_1800_by_city}
 ggplot(data = yearly_ukraine_temp, aes(x = year, y = countryAverage, group = City, colour = City)) +
       geom_point()
 ```
@@ -123,7 +127,7 @@ yearly_ukraine_temp <- scaled_temperature_ukraine %>%
                         summarise(countryAverage = mean(scaledTemperature))
 ```
 
-```{r yearly_}
+```{r yearly_ukraine_temp_scatter_from_1800_by_city_scaled}
 ggplot(data = yearly_ukraine_temp, aes(x = year, y = countryAverage, group = City, colour = City)) +
       geom_point()
 ```
@@ -136,7 +140,7 @@ seems that the trend is indeed global.
 Let's add a regression line to the plot above, so that we can see 
 where is the line that goes ....
 
-```{r scatter plot}
+```{r yearly_ukraine_temp_scatter_from_1800_by_city_with_regression}
 ggplot(data = yearly_ukraine_temp, aes(x = year,  y = countryAverage)) +
       geom_point(aes(colour = countryAverage), size = 4) + 
       xlim(1800, 2050) +

@@ -194,14 +194,14 @@ Notice how the boxplot layer is on top of the jitter layer? Play around with
 the order of geoms and adjust transparency to see how to build up your plot in
 layers.
 
-<!---
+
 ```{r, eval=FALSE, purl=FALSE}
 ## For example
 ggplot(data = temperature_complete, aes(x = country_id,  y = AverageTemperatureCelsius)) +
                    geom_boxplot(alpha = 0.9, size = 0.9)  +
                    geom_jitter(alpha = 0.1, color = "tomato")
 ```
---->
+
 
 > ### Challenges
 
@@ -212,26 +212,24 @@ drawn.
 
 > - Replace the box plot with a violin plot; see `geom_violin()`
 
-<!---
 ```{r, eval=FALSE, purl=FALSE}
 ## Answer
 ggplot(data = temperature_complete, aes(x = country_id,  y = AverageTemperatureCelsius)) +
                    geom_jitter(alpha = 0.3, color = "tomato") +
                    geom_violin(alpha = 0)
 ```
---->
+
 
 > - Create boxplot for `AverageTemperatureUncertaintyCelsius`, which is a 95%
 > confidence interval from average temperature, it is always positive.
 
-<!---
+
 ```{r, eval=FALSE, purl=FALSE}
 ## Answer
 ggplot(data = temperature_complete, aes(x = country_id,  y = AverageTemperatureUncertaintyCelsius)) +
                    geom_jitter(alpha = 0.3, color = "tomato") +
                    geom_boxplot(alpha = 0)
 ```
---->
 
 In many types of data, it is important to consider the *scale* of the observations.  For example, it may be
 worth changing the scale of the axis to better distribute the observations in the space of the plot.
@@ -240,7 +238,7 @@ Changing the scale of the axes is done similarly to adding/modifying other compo
 
 > - Represent AverageTemperatureUncertaintyCelsius on the log10 scale; see `scale_y_log10()`
 
-<!---
+
 ```{r, eval=FALSE, purl=FALSE}
 ## Answer
 ggplot(data = temperature_complete, aes(x = country_id,  y = AverageTemperatureUncertaintyCelsius)) +
@@ -248,7 +246,7 @@ ggplot(data = temperature_complete, aes(x = country_id,  y = AverageTemperatureU
                    geom_boxplot(alpha = 0) + 
                    scale_y_log10()
 ```
---->
+
 
 ## Plotting time series data
 
