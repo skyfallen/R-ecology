@@ -166,7 +166,7 @@ informative than integers because factors are self describing: `"low"`,
 `"medium"`, `"high"`" is more descriptive than `1`, `2`, `3`. Which is low?  You
 wouldn't be able to tell just from the integer data. Factors, on the other hand,
 have this information built in. It is particularly helpful when there are many
-levels (like the species in our example data set).
+levels (like countries and cities in our example data set).
 
 ### Converting factors
 

@@ -145,7 +145,7 @@ ggplot(data = yearly_ukraine_temp, aes(x = year,  y = countryAverage)) +
       geom_point(aes(colour = countryAverage), size = 4) + 
       xlim(1800, 2050) +
       geom_smooth(size = 2, method = lm, formula = y ~ splines::bs(x, 3), fullrange = TRUE) +
-      labs(title = 'Climate change in Ukraine (1800 - 2050)',
+      labs(title = 'Climate change (1800 - 2050)',
                         x = 'Year',
                         y = 'Scaled average temperature') + 
       theme_bw(base_size = 16) +
