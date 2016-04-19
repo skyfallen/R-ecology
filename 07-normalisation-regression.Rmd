@@ -34,11 +34,13 @@ library(magrittr)
 library(dplyr)
 ```
 
+Let's use the same data we had for previous lessons
+
 ```{r}
 temperature_raw <- read.csv('data/temperature.csv')
 ```
 
-Preprocess data
+Data preprocessing from previous lessons in one block
 
 ```{r}
 temperature_complete <- temperature_raw %>%
@@ -57,47 +59,50 @@ temperature_complete$AverageTemperatureUncertaintyFahr <- NULL
 head(temperature_complete)
 ```
 
-Let's us focus on Ukrainian temperature
+Focus on temperature from Ukraine with the use of `filter`
 
 ```{r}
 temperature_ukraine  <- temperature_complete %>%
                         filter(Country == 'Ukraine')
 ```
 
-Let's visualise the temperature progress per year for this we need to ...
+Find mean temperature per each year using `group_by` and 
+`summarise` functions
 
 ```{r}
 yearly_ukraine_temp <- temperature_ukraine %>%
                         group_by(year) %>%
                         summarise(countryAverage = mean(AverageTemperatureCelsius))
 ```
+
+Plot this information using `geom_point`
 
 ```{r yearly_ukraine_temp_scatter}
 ggplot(data = yearly_ukraine_temp, aes(x = year, y = countryAverage)) +
       geom_point()
 ```
 
-It seems that we don't have enough data until 1800, let's filter it
+It seems that there is some problem with data availability before 1800.
+We shall filter out all the measurements before this year to see more 
+clear picture. Let's use `filter` again
 
 ```{r}
-temperature_ukraine <- temperature_ukraine %>%
+temperature_ukraine  <- temperature_ukraine %>%
                         filter(year > 1800)
 ```
 
-... and try visualising the same information again
+... and try to visualise
 
 ```{r}
-yearly_ukraine_temp <- temperature_ukraine %>%
+yearly_ukraine_temp <- temperature_ukraine %>%                     
                         group_by(year) %>%
                         summarise(countryAverage = mean(AverageTemperatureCelsius))
-```
 
-```{r yearly_ukraine_temp_scatter_from_1800}
 ggplot(data = yearly_ukraine_temp, aes(x = year, y = countryAverage)) +
       geom_point()
 ```
 
-The interesting question here is how much each city influences this trend?
+Let's see how much each city influences this trend
 
 ```{r}
 yearly_ukraine_temp <- temperature_ukraine %>%
@@ -105,13 +110,16 @@ yearly_ukraine_temp <- temperature_ukraine %>%
                         summarise(countryAverage = mean(AverageTemperatureCelsius))
 ```
 
+adding `City` as a colour component will add this info to our graph
+
 ```{r yearly_ukraine_temp_scatter_from_1800_by_city}
 ggplot(data = yearly_ukraine_temp, aes(x = year, y = countryAverage, group = City, colour = City)) +
       geom_point()
 ```
 
 Let's scale all the distributions by average of each city and divide by the standard deviation of each city
-For that we need to ...
+We shall use `mutate` to store scalled temperature, which is a result of subtracting average of each group 
+and dividing them by the standard deviation
 
 ```{r}
 scaled_temperature_ukraine <- temperature_ukraine %>%
@@ -133,24 +141,57 @@ ggplot(data = yearly_ukraine_temp, aes(x = year, y = countryAverage, group = Cit
 ```
 
 This looks much better, I mean much worse in terms of global warming of course, as it 
-seems that the trend is indeed global.
+seems that the trend is indeed present.
 
 ## Regression
 
-Let's add a regression line to the plot above, so that we can see 
-where is the line that goes ....
+Let's add a regression line to the plot above. For that we will use 
+`geom_smooth` function that fits regression to the data. 
 
-```{r yearly_ukraine_temp_scatter_from_1800_by_city_with_regression}
+```{r yearly_ukraine_temp_scatter_from_1800_by_city_with_lm_regression}
+ggplot(data = yearly_ukraine_temp, aes(x = year,  y = countryAverage)) +
+      geom_point() + 
+      geom_smooth(method = lm)
+```
+
+We might want to fit a polynomial trend instead of linear (it is too linear),
+this is how it is done:
+
+```{r yearly_ukraine_temp_scatter_from_1800_by_city_with_non_lm_regression}
+ggplot(data = yearly_ukraine_temp, aes(x = year,  y = countryAverage)) +
+      geom_point() + 
+      geom_smooth(method = lm, formula = y ~ splines::bs(x, 3))
+```
+
+Also as we want to get some prediction we should fix the time range 
+from 1800 to 2050 usign `xlim` function and set argument `fullrange`
+in `geom_smooth` to `TRUE`
+
+```{r yearly_ukraine_temp_scatter_from_1800_by_city_with_non_lm_regression_future_trend}
+ggplot(data = yearly_ukraine_temp, aes(x = year,  y = countryAverage)) +
+      geom_point() + 
+      xlim(1800, 2050) +
+      geom_smooth(method = lm, formula = y ~ splines::bs(x, 3), fullrange = TRUE)
+```
+
+Nice, we are almost there, quickly adding some bells and whistles for the 
+graph to look more fancy
+
+```{r yearly_ukraine_temp_scatter_from_1800_by_city_with_non_lm_regression_future_trend_colourfull}
 ggplot(data = yearly_ukraine_temp, aes(x = year,  y = countryAverage)) +
       geom_point(aes(colour = countryAverage), size = 4) + 
       xlim(1800, 2050) +
       geom_smooth(size = 2, method = lm, formula = y ~ splines::bs(x, 3), fullrange = TRUE) +
-      labs(title = 'Climate change (1800 - 2050)',
+      labs(title = 'Climate change in Ukraine (1800 - 2050)',
                         x = 'Year',
                         y = 'Scaled average temperature') + 
-      theme_bw(base_size = 16) +
+      theme_bw(base_size = 14) +
       scale_colour_gradient(low = "blue", high = "red") 
 ```
+Now, what about interpretation of this figure? We can see that by 2050 our 
+scaled averaged temperature will differ by at least 0.2 standard deviations.
+1 standard deviation of yearly average temperature in Ukraine 
+is about 7.5 degrees, thus, 0.2*7.5 is about 1.5 degrees warmer on average per year.
 
 At this level, expected within 40 years, the hot European summer of 2003 will be the annual norm. 
 Anything that could be called a heatwave thereafter will be of Saharan intensity. 
